@@ -17,12 +17,12 @@ class Redis extends CI_Controller
 //        parent::__construct();
     }
 
-    public function connect()
+    public function connect(): bool
     {
         $this->set_protect_hash_item('sss', 'sss', 'sss');
     }
 
-    public function set_hash_item($hkey, $k = '', $v = '')
+    public function set_hash_item(string $hkey, string $k = '', $v = ''): bool
     {
         $ret = $this->_redis->hMset($hkey, $k, $v);
         return $ret ? true : false;
@@ -47,7 +47,7 @@ class Redis extends CI_Controller
         return $ret ?: [];
     }
 
-    public function check_hash_key_exist($hkey, $field = '')
+    public function check_hash_key_exist($hkey, $field = ''): bool
     {
         if (!$field) {
             return false;
@@ -55,4 +55,20 @@ class Redis extends CI_Controller
         return $this->_redis->hexists($hkey, $field);
     }
 
+    public function set_list_item(string $lkey, $value = [],$action = 'l'): bool
+    {
+        $method = $action.'Push';
+        if (!$lkey) {
+            return false;
+        }
+        $llength = $this->_redis->lLen($lkey);
+        if (is_array($value)) {
+            foreach ($value as $val) {
+                $this->_redis->$method($val);
+            }
+            $new_length = $this->_redis->lLen($lkey);
+            return ($new_length - $llength > 0) ? true : false;
+        }
+        return $this->$method($lkey,$value);
+    }
 }
